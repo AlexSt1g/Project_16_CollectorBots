@@ -3,28 +3,27 @@ using UnityEngine;
 [RequireComponent(typeof(ResourceScanner))]
 public class ResourceScannerView : MonoBehaviour
 {
-    [SerializeField] private ParticleSystem _scanVFXPrefab;
+    [SerializeField] private ParticleSystem _scanVFX;
 
     private ResourceScanner _scanner;    
 
     private void Awake()
     {
-        _scanner = GetComponent<ResourceScanner>();
+        _scanner = GetComponent<ResourceScanner>();        
     }
 
     private void OnEnable()
     {
-        _scanner.Scanning += SpawnVFX;
+        _scanner.Scanning += PlayVFX;
     }
 
     private void OnDisable()
     {
-        _scanner.Scanning -= SpawnVFX;
+        _scanner.Scanning -= PlayVFX;
     }
 
-    private void SpawnVFX()
+    private void PlayVFX()
     {
-        ParticleSystem vfx = Instantiate(_scanVFXPrefab, transform.position, Quaternion.identity);
-        Destroy(vfx.gameObject, vfx.main.duration);
+        _scanVFX.Play();
     }
 }

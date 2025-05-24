@@ -7,22 +7,22 @@ public class BotSpawner : MonoBehaviour
     
     public void Spawn(Vector3 spawnPoint, BotBase botBase)
     {
-        while (TryCheckSpawnPoint(spawnPoint))
-            SetNewPosition(ref spawnPoint);
+        while (DetermineIfPositionIsEngaged(spawnPoint))
+            MoveSpawnPoint(ref spawnPoint);
 
         Bot bot = Instantiate(_botPrefab, spawnPoint, Quaternion.identity);
-        bot.Init(botBase);
+        bot.Init(botBase.ResourceCollectingZone);
         botBase.AddBot(bot);
     }
 
-    private bool TryCheckSpawnPoint(Vector3 spawnPoint)
+    private bool DetermineIfPositionIsEngaged(Vector3 spawnPoint)
     {
         int halfExtentsDivider = 2;
 
         return Physics.CheckBox(spawnPoint, _botPrefab.transform.localScale / halfExtentsDivider, Quaternion.identity, _freeSpaceLayerMaskFilter);
     }
 
-    private void SetNewPosition(ref Vector3 spawnPoint)
+    private void MoveSpawnPoint(ref Vector3 spawnPoint)
     {
         float offset = _botPrefab.transform.localScale.z;
 

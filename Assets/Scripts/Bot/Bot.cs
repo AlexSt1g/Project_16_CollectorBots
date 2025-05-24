@@ -2,14 +2,12 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(BotMover))]
+[RequireComponent(typeof(BotResourceCollector))]
 public class Bot : MonoBehaviour
 {
-    [SerializeField] private Transform _resourceGrabPosition;
-
     private BotMover _mover;
-    private Collider _resourceCollectingZone;      
-    private bool _hasResource;
-    private Resource _resource;
+    private BotResourceCollector _collector;
+    private Collider _resourceCollectingZone;
 
     public event Action ResourceDelivered;
 
@@ -18,51 +16,42 @@ public class Bot : MonoBehaviour
     private void Awake()
     {
         _mover = GetComponent<BotMover>();
-    }    
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (_hasResource == false)
-            if (other.TryGetComponent(out Resource resource))
-                if (resource == _resource)
-                {
-                    GrabResource(resource);
-                    _mover.MoveTo(_resourceCollectingZone.bounds.ClosestPoint(transform.position));
-                }
-
-        if (_hasResource && _resource != null)
-        {
-            if (other == _resourceCollectingZone)
-            {
-                ResourceDelivered?.Invoke();
-                DropResource();
-                HasTask = false;
-            }
-        }
+        _collector = GetComponent<BotResourceCollector>();
     }
 
-    public void Init(BotBase botBase)
-    {        
-        _resourceCollectingZone = botBase.ResourceCollectingZone;
+    private void OnEnable()
+    {
+        _collector.ResourcePickedUp += OnResourcePickUp;
+        _collector.ResourceDelivered += OnResourceDelivered;
+    }
+
+    private void OnDisable()
+    {
+        _collector.ResourcePickedUp -= OnResourcePickUp;
+        _collector.ResourceDelivered -= OnResourceDelivered;
+    }    
+
+    public void Init(Collider resourceCollectingZone)
+    {
+        _resourceCollectingZone = resourceCollectingZone;
+        _collector.Init(resourceCollectingZone);
     }
 
     public void CollectResource(Resource resource)
-    {
-        _resource = resource;
+    {        
+        _collector.SetResourceToCollect(resource);
         _mover.MoveTo(resource.transform.position);
         HasTask = true;
     }
 
-    private void GrabResource(Resource resource)
+    private void OnResourcePickUp()
     {
-        resource.PickUp(transform, _resourceGrabPosition.position);
-        _hasResource = true;
+        _mover.MoveTo(_resourceCollectingZone.bounds.ClosestPoint(transform.position));
     }
 
-    private void DropResource()
+    private void OnResourceDelivered()
     {
-        _resource.Drop();
-        _resource = null;
-        _hasResource = false;
+        ResourceDelivered?.Invoke();
+        HasTask = false;
     }
 }

@@ -17,7 +17,7 @@ public class ResourceSpawner : MonoBehaviour
     {
         _pool = new ObjectPool<Resource>(
             createFunc: () => Instantiate(_prefab),
-            actionOnGet: (resource) => EnableResource(resource),
+            actionOnGet: (resource) => HandleResourcePlacement(resource),
             actionOnRelease: (resource) => DisableResource(resource),
             actionOnDestroy: (resource) => Destroy(resource),
             collectionCheck: true,
@@ -41,7 +41,7 @@ public class ResourceSpawner : MonoBehaviour
         }
     }
 
-    private void EnableResource(Resource resource)
+    private void HandleResourcePlacement(Resource resource)
     {
         if (TryGetSpawnPoint(out Vector3 spawnPoint))
         {
@@ -71,8 +71,7 @@ public class ResourceSpawner : MonoBehaviour
     }
 
     private bool TryGetSpawnPoint(out Vector3 spawnPoint, int numberOfAttempts = 50)
-    {
-        spawnPoint = new();
+    {        
         int halfOfScaleCoefficient = 2;
         int planeScaleMultiplier = 10;        
 
@@ -80,26 +79,26 @@ public class ResourceSpawner : MonoBehaviour
         float sidestepZ = _spawningArea.transform.localScale.z / halfOfScaleCoefficient * planeScaleMultiplier;
         float heigthOffset = _prefab.transform.localScale.y / halfOfScaleCoefficient;
 
-        SetNewPosition(ref spawnPoint, sidestepX, sidestepZ, heigthOffset);
-        
-        while (TryCheckSpawnPoint(spawnPoint) && numberOfAttempts != 0)
-        {            
-            SetNewPosition(ref spawnPoint, sidestepX, sidestepZ, heigthOffset);
+        spawnPoint = GetNewPosition(sidestepX, sidestepZ, heigthOffset);
+
+        while (DetermineIfPositionIsEngaged(spawnPoint) && numberOfAttempts != 0)
+        {
+            spawnPoint = GetNewPosition(sidestepX, sidestepZ, heigthOffset);
             numberOfAttempts--;
         }
 
         return numberOfAttempts != 0;
     }
 
-    private bool TryCheckSpawnPoint(Vector3 spawnPoint)
+    private bool DetermineIfPositionIsEngaged(Vector3 spawnPoint)
     {
         int radiusDivider = 2;
 
         return Physics.CheckSphere(spawnPoint, _prefab.transform.localScale.x / radiusDivider, _freeSpaceLayerMaskFilter);
     }
 
-    private void SetNewPosition(ref Vector3 spawnPoint, float maxXValue, float maxZValue, float heightOffset)
+    private Vector3 GetNewPosition(float maxXValue, float maxZValue, float heightOffset)
     {
-        spawnPoint = new Vector3(Random.Range(-maxXValue, maxXValue), heightOffset, Random.Range(-maxZValue, maxZValue));
+        return new Vector3(Random.Range(-maxXValue, maxXValue), heightOffset, Random.Range(-maxZValue, maxZValue));
     }
 }

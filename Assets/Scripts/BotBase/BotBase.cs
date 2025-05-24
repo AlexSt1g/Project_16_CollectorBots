@@ -9,15 +9,17 @@ public class BotBase : MonoBehaviour
 {
     [SerializeField] private Transform _botsSpawnPoint;
     [SerializeField] private int _startNumberOfBots = 3;
+    [SerializeField] private float _resourceScannerDelay = 5f;
+    [SerializeField] private ResourceDataBase _resourceDataBase;
     [SerializeField] private ResourceCounter _resourceCounter;
 
     private BotSpawner _botSpawner;
     private List<Bot> _bots = new();
     private List<Bot> _freeBots = new();
-    private ResourceScanner _resourceScanner;    
+    private ResourceScanner _resourceScanner;
 
     [field: SerializeField] public Collider ResourceCollectingZone { get; private set; }
-    
+
     private void Awake()
     {
         _botSpawner = GetComponent<BotSpawner>();
@@ -27,14 +29,14 @@ public class BotBase : MonoBehaviour
 
     private void OnEnable()
     {
-        _resourceScanner.Found += OnResourcesFound;        
+        _resourceScanner.Found += OnResourcesFound;
     }
 
     private void OnDisable()
     {
         _resourceScanner.Found -= OnResourcesFound;
 
-        foreach (var bot in _bots)        
+        foreach (var bot in _bots)
             bot.ResourceDelivered -= OnResourceDelivered;
     }
 
@@ -54,7 +56,7 @@ public class BotBase : MonoBehaviour
 
     private IEnumerator ScanResourcesWithDelay()
     {
-        WaitForSeconds wait = new(_resourceScanner.Delay);
+        WaitForSeconds wait = new(_resourceScannerDelay);
 
         while (enabled)
         {
@@ -65,10 +67,14 @@ public class BotBase : MonoBehaviour
 
     private void OnResourcesFound(List<Resource> resources)
     {
+        _resourceDataBase.AddResources(resources);
+
         if (TryGetFreeBots())
         {
-            SortResourcesByDistanceToBase(ref resources);
-            OrderBotsToCollectResources(resources);
+            List<Resource> freeResources = _resourceDataBase.GetFreeResources();
+
+            SortResourcesByDistanceToBase(ref freeResources);
+            OrderBotsToCollectResources(freeResources);
         }
     }
 
@@ -95,9 +101,9 @@ public class BotBase : MonoBehaviour
         {
             if (i >= resources.Count)
                 return;
-            
-            _freeBots[i].CollectResource(resources[i]);
-            resources[i].BlockForCollecting();
+
+            _freeBots[i].CollectResource(resources[i]);            
+            _resourceDataBase.EngageResource(resources[i]);
         }
     }
 

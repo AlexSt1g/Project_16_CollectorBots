@@ -12,8 +12,6 @@ public class ResourceScanner : MonoBehaviour
     public event Action<List<Resource>> Found;
     public event Action Scanning;
 
-    [field: SerializeField] public float Delay { get; private set; } = 5f;
-
     public void Scan()
     {
         Scanning?.Invoke();
@@ -21,11 +19,10 @@ public class ResourceScanner : MonoBehaviour
         _foundResources.Clear();
 
         Collider[] others = Physics.OverlapBox(transform.position, GetScanningAreaSize(), Quaternion.identity, _layerMask);
-        
+
         foreach (Collider collider in others)
             if (collider.TryGetComponent(out Resource resource))
-                if (resource.IsFreeForCollecting)
-                    _foundResources.Add(resource);
+                _foundResources.Add(resource);
 
         if (_foundResources.Count > 0)
             Found?.Invoke(_foundResources);
