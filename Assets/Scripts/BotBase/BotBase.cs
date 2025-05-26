@@ -24,7 +24,6 @@ public class BotBase : MonoBehaviour
     {
         _botSpawner = GetComponent<BotSpawner>();
         _resourceScanner = GetComponent<ResourceScanner>();
-        _resourceCounter.Reset();
     }
 
     private void OnEnable()
@@ -42,6 +41,8 @@ public class BotBase : MonoBehaviour
 
     private void Start()
     {
+        _resourceCounter.Reset();
+
         for (int i = 0; i < _startNumberOfBots; i++)
             _botSpawner.Spawn(_botsSpawnPoint.position, this);
 

@@ -405,6 +405,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _botsSpawnPoint: {fileID: 81967234}
   _startNumberOfBots: 3
+  _resourceScannerDelay: 5
   _resourceDataBase: {fileID: 2059260544}
   _resourceCounter: {fileID: 1649826474}
   <ResourceCollectingZone>k__BackingField: {fileID: 260975638}
@@ -440,7 +441,6 @@ MonoBehaviour:
   _layerMask:
     serializedVersion: 2
     m_Bits: 64
-  <Delay>k__BackingField: 5
 --- !u!114 &692342991
 MonoBehaviour:
   m_ObjectHideFlags: 0
